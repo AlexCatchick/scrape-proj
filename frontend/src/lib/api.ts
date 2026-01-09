@@ -11,9 +11,8 @@ import type {
   CategoriesQuery,
 } from './types';
 
-const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
-// Ensure /api suffix
-const API_URL = baseUrl.endsWith('/api') ? baseUrl : `${baseUrl}/api`;
+// Use environment variable or fallback to production URL
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://scrape-proj-production.up.railway.app/api';
 
 const api = axios.create({
   baseURL: API_URL,
