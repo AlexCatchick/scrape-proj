@@ -60,6 +60,7 @@ export class ProductListScraper {
               title: string;
               author?: string;
               price: string;
+              currency: string;
               originalPrice?: string;
               imageUrl?: string;
               href: string;
@@ -98,9 +99,21 @@ export class ProductListScraper {
                 }
               }
 
-              // Get title from link text or h3
-              const titleEl = link.querySelector('h3, h2') || link;
-              const title = titleEl?.textContent?.trim();
+              // Get title from link text or h3 - only get direct text, not nested
+              const titleEl = link.querySelector('h3, h2');
+              let title = '';
+              if (titleEl) {
+                // Get only the first line of text, excluding price/author
+                const fullText = titleEl.textContent?.trim() || '';
+                // Split by common delimiters or price symbols
+                const parts = fullText.split(/(?=[\$£€])|(?=[A-Z][a-z]+ [A-Z])/);
+                title = parts[0]?.trim() || fullText.split('\n')[0]?.trim() || '';
+              } else {
+                // Fallback: try to extract from link directly
+                const linkText = link.textContent?.trim() || '';
+                const parts = linkText.split(/(?=[\$£€])/);
+                title = parts[0]?.trim().split('\n')[0]?.trim() || '';
+              }
               
               if (!title || title.length < 2) return;
               
@@ -126,6 +139,8 @@ export class ProductListScraper {
                   return text.length > 0 && 
                          text.length < 100 && 
                          !text.includes('£') && 
+                         !text.includes('$') &&
+                         !text.includes('€') &&
                          !text.includes('Add') &&
                          !text.includes('Basket') &&
                          !text.includes('Buy') &&
@@ -134,22 +149,28 @@ export class ProductListScraper {
                 // Author is typically the element right after title
                 for (const node of textNodes) {
                   const text = node.textContent?.trim() || '';
-                  if (text && text !== title && !text.includes('£') && text.length < 60) {
+                  if (text && text !== title && !text.match(/[\$£€]/) && text.length < 60) {
                     // Check if it looks like an author name (contains letters, not just symbols)
                     if (/[a-zA-Z]{2,}/.test(text) && !text.includes('Free') && !text.includes('delivery')) {
-                      author = text.replace(/^by\s+/i, '');
+                      author = text.replace(/^by\s+/i, '').split(/[\$£€]/)[0]?.trim();
                       break;
                     }
                   }
                 }
               }
 
-              // Find price
+              // Find price - check for multiple currency symbols
               let price = '0';
+              let currency = 'GBP';
               if (container) {
-                const priceMatch = container.textContent?.match(/£[\d.]+/);
+                const containerText = container.textContent || '';
+                // Try to find price with currency symbol
+                const priceMatch = containerText.match(/[\$£€][\d.]+/) || containerText.match(/[\d.]+\s*[\$£€]/);
                 if (priceMatch) {
                   price = priceMatch[0];
+                  if (price.includes('$')) currency = 'USD';
+                  else if (price.includes('€')) currency = 'EUR';
+                  else currency = 'GBP';
                 }
               }
 
@@ -160,6 +181,7 @@ export class ProductListScraper {
                 title,
                 author,
                 price,
+                currency,
                 originalPrice: undefined,
                 imageUrl: imageUrl || undefined,
                 href,
@@ -183,10 +205,8 @@ export class ProductListScraper {
             const priceMatch = item.price.match(/[\d.]+/);
             const price = priceMatch ? parseFloat(priceMatch[0]) : 0;
 
-            // Detect currency
-            const currency = item.price.includes('£') ? 'GBP' : 
-                           item.price.includes('$') ? 'USD' : 
-                           item.price.includes('€') ? 'EUR' : 'GBP';
+            // Use currency from scraped item
+            const currency = item.currency || 'GBP';
 
             // Parse original price
             let originalPrice: number | undefined;
