@@ -1,15 +1,21 @@
 # Nixpacks configuration for Railway
 [phases.setup]
-nixPkgs = ['nodejs-20_x', 'chromium']
+nixPkgs = ['nodejs-20_x', 'chromium', 'libnss3', 'libatk-bridge2.0-0', 'libdrm2', 'libxkbcommon0', 'libgbm1']
+aperture = ['libx11', 'libxcomposite', 'libxdamage', 'libxrandr', 'libglib2.0-0', 'libasound2']
 
 [phases.install]
 cmds = ['npm ci']
 
 [phases.build]
-cmds = ['npm run build', 'npx playwright install chromium']
+cmds = [
+  'npm run build',
+  'npx playwright install chromium --with-deps'
+]
 
 [start]
 cmd = 'node dist/main.js'
 
 [variables]
 PLAYWRIGHT_BROWSERS_PATH = '/app/.cache/ms-playwright'
+PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD = '0'
+NODE_ENV = 'production'

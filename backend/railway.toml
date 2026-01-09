@@ -1,13 +1,11 @@
 [build]
-builder = "dockerfile"
-dockerfilePath = "Dockerfile"
+builder = "nixpacks"
+buildCommand = "npm ci && npm run build && npx playwright install chromium && npx playwright install-deps"
 
 [deploy]
 startCommand = "node dist/main.js"
 healthcheckPath = "/api/health"
 healthcheckTimeout = 300
 restartPolicyType = "on_failure"
-restartPolicyMaxRetries = 3
-
-[[services]]
-name = "backend"
+restartPolicyMaxRetries = 5
+numReplicas = 1
