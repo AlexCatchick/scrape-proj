@@ -33,7 +33,7 @@ import { ViewHistoryModule } from './modules/view-history/view-history.module';
             type: 'postgres',
             url: databaseUrl,
             entities: [__dirname + '/**/*.entity{.ts,.js}'],
-            synchronize: configService.get('NODE_ENV') !== 'production',
+            synchronize: true, // Auto-create tables
             logging: configService.get('NODE_ENV') === 'development',
             ssl: configService.get('DATABASE_SSL') === 'true' ? { rejectUnauthorized: false } : false,
           };
