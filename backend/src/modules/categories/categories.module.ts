@@ -1,0 +1,17 @@
+import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { CategoriesService } from './categories.service';
+import { CategoriesController } from './categories.controller';
+import { Category, Navigation, Product } from '../../database/entities';
+import { ScrapeModule } from '../scrape/scrape.module';
+
+@Module({
+  imports: [
+    TypeOrmModule.forFeature([Category, Navigation, Product]),
+    ScrapeModule,
+  ],
+  controllers: [CategoriesController],
+  providers: [CategoriesService],
+  exports: [CategoriesService],
+})
+export class CategoriesModule {}
