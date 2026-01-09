@@ -11,7 +11,9 @@ import type {
   CategoriesQuery,
 } from './types';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+// Ensure /api suffix
+const API_URL = baseUrl.endsWith('/api') ? baseUrl : `${baseUrl}/api`;
 
 const api = axios.create({
   baseURL: API_URL,
